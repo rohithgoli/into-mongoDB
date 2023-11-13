@@ -1,0 +1,37 @@
++ Exercising on Cluster of MongoDB Atlas for
+    Inserting
+    Querying
+    Deleting data
+    from Interactive tab
+
+
+    + Insert Documents --> insertMany()
+
+        + If a collection does not exist, MongoDB creates the collection when we first
+            store data for that collection
+        + To insert new documents into the collection in the database -->
+                db.collection.insertMany([{...}, {....}, {......}])
+                returns us acknowledgement indicator & an array that contains the _id of
+                each successfully inserted documents
+                    {
+                        acknowledged: true,
+                        insertedIds: {
+                            '0': ObjectId("33256435d4643254324"),
+                            '1': ObjectId("4234325s66732a23546"),
+                            '2': ObjectId("923532454d623632444"),
+                            '3': ObjectId("0138589d98789723078")
+                        }
+                    }
+
+    + Query specific documents --> find()
+
+        + to get all the documents in collection --> db.collection.find({})
+        + to find documents suiting the query in collection --> db.collection.find({ "directors": "Christopher Nolan" })
+
+    + Query to delete a specific document --> deleteOne()
+
+        + db.collection.deleteOne({"title": "titanic"})
+            returns us --> {
+                                "acknowledged": true,
+                                "deletedCount": 1
+                            }

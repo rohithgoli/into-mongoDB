@@ -1,0 +1,25 @@
++ MongoDB ---> Document Database
+
+    + A record in MongoDB --> document
+                                |--> a data structure composed of field & value pairs
+                                        & values of fields may include other documents, arrays, arrays of documents
+
++ Collections
+    + documents are stored in collections(lly to tables in RDBs)
++ Also provides Read-only Views, On-Demand Materialized Views
+
++ Key Features
+    + High Performance Data Persistence
+        Data Persistence
+            --> When data is persisted ==> same data can be retrieved by an application when
+            it's opened again. The data remains the same, and nothing is lost in between sessions.
+            --> In a cutshort, Data Persistence is the difference between data getting lost between sessions
+            and data remaining between sessions
+    + Extensive Support by Query API
+        |--> CRUD operations
+        |--> Data Aggregation
+        |--> Text Search & Geospatial Queries
+    + High Availability
+    + Horizontal Scalability
+    + Support for Multiple Storage Engines
+

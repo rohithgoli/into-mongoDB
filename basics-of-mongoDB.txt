@@ -1,0 +1,57 @@
+KeyWords
+    + BSON
+    + documents
+    + collections
+    + database
+
++ MongoDB stores data records as documents(BSON documents)
+    BSON is a binary representation of JSON documents, though it contains
+    more data types than JSON. (bsonspec.org)
+
++ documents --> data records are stored as documents in MongoDB
+    |--> collections --> documents are gathered together in collections (tables in RDBs)
+            |--> database --> stores one or more collections of documents
+
++ Databases
+    use myNewDB
+    db.myNewCollection1.insertOne({x:1})
+
+    If database, collection does not already exists, they will be created.
+
++ Collection
+    Implicit creation: --> when data is stored first for the collection
+        db.myNewCollection2.insertOne({x:1})
+        db.myNewCollection3.createIndex({y:1})
+
+    Explicit creation: --> can be used to create collection with various options
+        db.createCollection()
+
+    + By default, A collection does not require its documents to have the same schema
+    + Collections are assigned an immutable UUID & can be retrieved by method
+      db.getCollectionInfos()
+
++ CRUD Operations -- (python driver - pymongo)
+
+    + Create or Insert ops --> adds new documents to a collection
+
+            db.collection.insertOne()   --> pymongo.collection.Collection.insert_one({....}) returning
+                                                pymongo.results.InsertOneResult --> inserted_id --> _id
+            db.collection.insertMany()  --> pymongo.collection.Collection.insert_many([{.....}, {.....}, {....}])
+
+        Insert Behavior
+            + Collection Creation --> If the collection does not currently exist, insert ops will create the collection
+            + _id Field --> Each document stored in a collection requires a unique _id field that
+                            acts as a primary key
+                            If omitted, driver automatically generates an ObjectId for the _id field
+
+    + Read ops --> retrieves documents from a collection i.e query a collection of documents
+
+            db.collection.find()
+
+        Query filters or criteria can be specified that identify the documents to return
+
+            db.users.find(                   <---- collection
+                { age: { $gt: 18 } },       <---- query criteria
+                { name: 1, address: 1 }     <---- projection
+            ).limit(5)                      <---- cursor modifier
+    +
