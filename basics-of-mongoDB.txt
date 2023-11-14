@@ -30,7 +30,7 @@ KeyWords
     + Collections are assigned an immutable UUID & can be retrieved by method
       db.getCollectionInfos()
 
-+ CRUD Operations -- (python driver - pymongo)
++ CRUD Operations -- (python driver - pymongo, motor)
 
     + Create or Insert ops --> adds new documents to a collection
 
@@ -50,8 +50,74 @@ KeyWords
 
         Query filters or criteria can be specified that identify the documents to return
 
-            db.users.find(                   <---- collection
+            db.users.find(                  <---- collection
                 { age: { $gt: 18 } },       <---- query criteria
                 { name: 1, address: 1 }     <---- projection
             ).limit(5)                      <---- cursor modifier
-    +
+
+        + Query Documents
+
+            {
+                "item": "postcard",
+                "qty": 45,
+                "size": {"h": 10, "w": 15.25, "uom": "cm"},
+                "status": "A"
+            }
+
+            + Select All Documents in a Collection --> db.inventory.find({}) ==> SELECT * FROM inventory
+            + Specify Equality Condition
+                + Select from the inventory collection all documents where the status equals "D"
+                    db.inventory.find({"status": "D"})  ==> SELECT * from inventory WHERE status = "D"
+            + Specify Conditions Using Query Operators
+                + Retrieves all documents from the inventory collection where status equals either
+                  "A" or "D"
+                    db.inventory.find({"status": {"$in": ["A", "D"]}})  ==>  SELECT * FROM inventory WHERE status in ("A", "D")
+
+            + Compound Query(can specify conditions for more than one field in collection's documents):
+
+                + Specify AND conditions
+                    + Retrieve all documents in the inventory collection where the status equals "A" and qty is less than($lt) 30
+                        db.inventory.find({"status": "A", "qty": {"$lt": 30}})
+                                ==> SELECT * FROM inventory WHERE status = "A" AND qty < 30
+
+                + Specify OR conditions
+                    + Retrieve all documents in the collection where the status equals "A" or qty is less than($lt) 30
+                        db.inventory.find({"$or": [{"status": "A"}, {"qty": {"$lt": 30}}]})
+                                ==> SELECT * FROM inventory WHERE status = "A" OR qty < 30
+
+                + Specify AND as well as OR conditions
+                    + Retrieve all documents in the collection where the status equals "A" and
+                        either qty is less than($lt) 30 or item starts with the character p
+
+                             db.inventory.find(
+                                { "status": "A", "$or": [ {"qty": {"$lt": 30}}, {"item": {"$regex": "^p"}} ] }
+                             )
+                                ==>
+                                    SELECT * FROM inventory WHERE status = "A" AND (qty < 30 OR item LIKE "p%")
+
+        + Query on Embedded/Nested Documents
+        + Query on Array
+        + Query on Array of Embedded Documents
+
+
+    + Update Ops --> Modify existing documents in a collection
+
+        db.collection.updateOne()
+        db.collection.updateMany()
+        db.collection.replaceOne()
+
+        Example:
+            db.users.updateMany(                <----- collection
+                { age: { $lt: 18 } },           <----- update filter
+                { $set: { status: "reject" } }  <----- update action
+            )
+
+    + Delete Ops --> remove documents from a collection
+
+        db.collection.deleteOne()
+        db.collection.deleteMany()
+
+        Example:
+            db.users.deleteMany(        <---- collection
+                { status: "reject" }    <---- delete filter
+            )

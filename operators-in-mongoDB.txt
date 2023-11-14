@@ -1,0 +1,18 @@
+
+1. Query and Projection Operators --> https://www.mongodb.com/docs/manual/reference/operator/query/
+        Comparison Query Operators
+        Logical Query Operators
+        Element Query Operators
+        Evaluation Query Operators
+        Geospatial Query Operators
+        Array Query Operators
+        Bitwise Query Operators
+        Projection Operators
+        Misc. Query Operators
+
+2. Update Operators --> https://www.mongodb.com/docs/manual/reference/operator/update/
+
+        Behavior:
+            >5.0 --> update operators process document fields with
+                        string-based names in Lexicographic order
+                        numeric names in numeric order
