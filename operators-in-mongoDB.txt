@@ -1,11 +1,64 @@
 
 1. Query and Projection Operators --> https://www.mongodb.com/docs/manual/reference/operator/query/
-        Comparison Query Operators
-        Logical Query Operators
-        Element Query Operators
-        Evaluation Query Operators
-        Geospatial Query Operators
-        Array Query Operators
+        commonly used Query operators --> $eq, $or, $in, $exists, $regex, $elemMatch, $all
+
+        What are Query Operators ?
+            + Operators which we use while querying our Data
+                & these are categorized into different types
+
+        + Comparison Query Operators --> For comparison of different BSON type values
+            $eq, $in
+
+            eg: db.inventory.find( { qty: { $eq: 20 } } )
+                { field: { $eq: <value> } } --> when the <value> is fixed, like a particular string
+                { field: { $regex: <value> } } --> when the <value> is a regular expression ==> Regex Match Behaviour
+
+                { field: { $in: [<value1>, <value2>, ... <valueN> ] } }
+
+        + Logical Query Operators -->   used to perform logical operations on multiple expressions
+                                        used while joining multiple query clauses and also
+                                        query expression
+            $or
+
+            eg:
+                { $or: [ { <expression1> }, { <expression2> }, .. , { <expressionN> } ] }
+
+        + Element Query Operators --> these return data(documents) based on field existence or data types
+
+            $exists --> Matches documents that have or do not have the specified field
+            $type --> Selects documents if a field is of the specified type
+
+            eg:
+                { field: { $exists: <boolean> } }
+
+                NOTE: It gives the documents that contain the field, including the document
+                        whose field contains a null value
+                      Performance improvement can be done by creating a sparse index on the field
+
+        + Evaluation Query Operators --> query and return data based on evaluations of either individual
+                                         fields or the entire collection's documents
+
+            $regex --> Selects documents where values match a specified regular expression
+
+            eg:
+                { <field>: { $regex: /pattern/, $options: '<options>' } }
+
+        + Geospatial Query Operators
+
+        + Array Query Operators --> return data based on array conditions
+
+            $elemMatch --> selects documents if element in the array field matches all the specified
+                           $elemMatch conditions
+
+            eg:
+                { results: { $elemMatch: { $gte: 80, $lt: 85 } } }
+
+            $all --> selects the documents where the value of a field is an array that contains
+                     all the specified elements
+
+            eg:
+                { <field>: { $all: [ <value1>, <value2> ...] } }
+
         Bitwise Query Operators
         Projection Operators
         Misc. Query Operators
