@@ -1,0 +1,109 @@
+
+Aggregation Operations --> process multiple documents and return computed results
+    https://www.mongodb.com/docs/manual/aggregation/
+
++ What is the use of aggregation operations ?
+    + Group values from multiple documents together (May be summing up )
+    + Perform operations on the grouped data to return a single result (May be calculating average from the sum )
+    + Analyze data changes over time
+
++ How to perform aggregation operations ?
+    + using Aggregation pipelines (preferred methods)
+    + using Single purpose aggregation methods
+
+
++ Aggregation Pipelines -->-- contains one or more stages ( $match, $project, $sort, $limit, $count) that process documents
+
+    Facts about Aggregation Pipelines
+        + Each stage performs an operation(filter documents, group documents, calculate values)
+            on input documents
+        + Documents that are output from a stage are passed to next stage
+        + Aggregation pipeline can return results for groups of documents.
+            eg: return total, average, maximum, minimum values
+
+        * These run with method
+            db.collection.aggregate()
+                & does not modify documents in a collection, unless the pipeline contains a $merge or $out stage
+
+            eg:
+                The below aggregation pipeline example contains two stages and returns the total
+                order quantity of medium size pizzas grouped by pizza name
+
+                db.orders.aggregate( [
+                    // Stage 1: Filter pizza order documents by pizza size
+                    {
+                        $match: { size: "medium" }
+                    },
+                    // Stage 2: Group remaining documents by pizza name and calculate total quantity
+                    {
+                        $group: { _id: "$name", totalQuantity: { $sum: "$quantity" } }
+                    }
+                ])
+
++ Single Purpose Aggregation Methods -->-- Aggregate documents from a single collection
+
+        db.collection.estimatedDocumentCount() --> returns an approximate count of the documents
+                                                   in a collection or a view
+
+        db.collection.count() --> returns a count of the number of documents in a collection or a view
+
+        db.collection.distinct() --> returns an array of documents that have distinct values for the
+                                     specified field.
+
+
++ Aggregation Expressions containing Aggregation Operators
+    + In order to calculate averages & perform other calculations in a stage, we use Aggregation expressions
+        that specify aggregation operators
+
++ Aggregation Pipeline Stages
+    $match, $project, $sort, $limit, $count
+
+        db.collection.aggregate( [ { <stage> }, ... ] )
+
+    $count --> returns a count of the number of documents at particular stage of the aggregation pipeline
+                $count stage is equivalent to $group + $project
+
+
+
+    $limit --> passes first n documents unmodified to the pipeline where n is specified limit.
+
+        { $limit : <positive 64-bit integer> }
+
+    $match --> filters the document stream to allow only matching documents to pass unmodified into next pipeline stage
+
+        { $match: { <query> } }
+
+        eg:
+            db.articles.aggregate(
+                [ { $match: { author: "dave" } } ]
+            )
+
+            db.articles.aggregate(
+                [
+                    { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
+                    { $group: { _id: null, count: { $sum: 1 } } }
+                ]
+            );
+
+    $project --> Reshapes each document in the stream, such as by adding new fields or removing existing fields
+                    It takes a document that can specify
+                        -> the inclusion of fields
+                        -> the suppression of the _id field
+                        -> the addition of new fields
+                        -> the resetting of values of existing fields
+                        -> exclusion of a field
+
+        { $project: { <specification(s)> } }
+                               |
+                            <field>: <1 or true>
+                            _id: <0 or false>  (NOTE: _id field is by default included in the output documents)
+                            <field>: <expression>
+                            <field>: <0 or false>
+
+
+    $sort --> Reorders the document stream by a specified sort key
+
+        { $sort: { <field1>: <sort order>, <field2>: <sort order> ... } }
+
+        sort order = 1 --> sort ascending
+        sort order = -1 --> sort descending
