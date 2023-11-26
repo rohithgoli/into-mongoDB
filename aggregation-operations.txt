@@ -12,7 +12,10 @@ Aggregation Operations --> process multiple documents and return computed result
     + using Single purpose aggregation methods
 
 
-+ Aggregation Pipelines -->-- contains one or more stages ( $match, $project, $sort, $limit, $count) that process documents
++ Aggregation Pipelines -->-- contains one or more stages
+                              ( $match, $project, $sort, $limit, $count,
+                              $group, $lookup, $$unwind, $addFields, $count, $bucket)
+                              that process documents
 
     Facts about Aggregation Pipelines
         + Each stage performs an operation(filter documents, group documents, calculate values)
@@ -57,12 +60,12 @@ Aggregation Operations --> process multiple documents and return computed result
 
 + Aggregation Pipeline Stages
     $match, $project, $sort, $limit, $count
+    $group, $lookup, $unwind, $bucket, $bucketAuto, $addFields, $facets
 
         db.collection.aggregate( [ { <stage> }, ... ] )
 
     $count --> returns a count of the number of documents at particular stage of the aggregation pipeline
                 $count stage is equivalent to $group + $project
-
 
 
     $limit --> passes first n documents unmodified to the pipeline where n is specified limit.
@@ -107,3 +110,184 @@ Aggregation Operations --> process multiple documents and return computed result
 
         sort order = 1 --> sort ascending
         sort order = -1 --> sort descending
+
+
+    $group --> groups the documents according to a "group key"
+               + use _id field in the $group pipeline stage to set the group key
+                    If null is specified or any other constant value for _id, the $group stage
+                    returns a single document that aggregates values across all of the input documents
+
+        examples:
+            + Count the Number of Documents in a Collection
+
+                    db.sales.aggregate([
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $count: {} }
+                            }
+                        }
+                    ])   ==> SELECT COUNT(*) AS count FROM sales
+                    -----> { "_id": null, "count": 8 }
+
+            + Retrieve Distinct Values
+
+                    db.sales.aggregate([ { $group: { _id: "$item" } } ])
+
+            + Group by Item Having
+
+                    db.sales.aggregate([
+                        {
+                            $group:
+                                {
+                                    _id: "$item",
+                                    totalSalesAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
+                                }
+                        },
+                        {
+                            $match: { "totalSaleAmount": { $gte: 100 } }
+                        }
+                    ])
+                    ===> SELECT item,
+                            Sum(( price * quantity )) AS totalSaleAmount
+                         FROM sales
+                         GROUP BY item
+                         HAVING totalSaleAmount >= 100
+
+            + Group by Day of the Year
+
+                    db.sales.aggregate([
+                        {
+                            $match: { "date": { $gte: new ISODate("2014-01-01"), $lt: new ISODate("2015-01-01" } }
+                        },
+                        {
+                            $group: {
+                                _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                                totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+                                averageQuantity: { $avg: "$quantity" },
+                                count: { $sum: 1 }
+                            }
+                        },
+                        {
+                            $sort: { totalSaleAmount: -1 }
+                        }
+                    ])
+                    ===>
+                        SELECT date,
+                               Sum((price * quantity)) AS totalSaleAmount,
+                               Avg(quantity) AS averageQuantity,
+                               Count(*) AS Count
+                        FROM sales
+                        WHERE date >= "01/01/2014" AND date < "01/01/2015"
+                        GROUP BY date
+                        ORDER BY totalSaleAmount DESC
+
+            + Group by null
+
+                    db.sales.aggregate([
+                        {
+                            $group: {
+                                _id: null,
+                                totalSaleAmount: { $sum: { $multiply": [ "$price", "$quantity" ] } },
+                                averageQuantity: { $avg: "$quantity" },
+                                count: { $sum: 1 }
+                            }
+                        }
+                    ])
+                    ===> SELECT Sum(price * quantity) AS totalSaleAmount,
+                                Avg(quantity) AS averageQuantity,
+                                Count(*) AS Count
+                         FROM sales
+
+
+    $lookup --> Perform join(left  outer) operation
+
+        examples:
+
+            + Perform a Single Equality Join with $lookup
+
+                db contains Collections --> orders, inventory
+                    orders
+                        |--> {
+                                "_id": 1,
+                                "item": "almonds",
+                                "price": 12,
+                                "quantity": 2
+                             },
+                             {
+                                "_id": 2
+                             }
+
+                    inventory
+                        |--> {
+                                "_id": 1,
+                                "sku": "almonds",
+                                "description": "product 1",
+                                "instock": 130
+                             },
+                             {
+                                "_id": 3,
+                                "sku": null,
+                                "description": "Incomplete"
+                             },
+                             {
+                                "_id": 5
+                             }
+
+                Below aggregation operation on `orders` collection
+                    joins the documents from `orders` with the documents from the
+                    `inventory` collection using the fields `item` from the `orders`
+                    collection and the `sku` field from the `inventory` collection
+
+                db.orders.aggregate([
+                    {
+                        $lookup: {
+                            from: "inventory",
+                            localField: "item",
+                            foreignField: "sku",
+                            as: "inventory_docs"
+                        }
+                    }
+                ])
+                ---->
+                    {
+                        "_id": 1,
+                        "item": "almonds",
+                        "price": 12,
+                        "quantity": 2,
+                        "inventory_docs": [
+                            { "_id": 1, "sku": "almonds", "description": "product 1", "instock": 120 }
+                        ]
+                    },
+                    {
+                        "_id": 3,
+                        "inventory_docs": [
+                            { "_id": 5, "sku": null, "description": "Incomplete" },
+                            { "_id": 6 }
+                        ]
+                    }
+                ===>
+                    SELECT *, inventory_docs
+                    FROM orders
+                    WHERE inventory_docs IN (
+                        SELECT *
+                        FROM inventory
+                        WHERE sku = orders.item
+                    );
+
+            + Use $lookup with an Array
+
+                    If the `localField` is an array, we can match the array elements against a scalar
+                    `foreignField` without an $unwind stage
+
+                    We have two collections `classes` & `members`, multiple members get enrolled in multiple classes
+                    We can perform $lookup operation on `classes` containing enrollmentList with name of `members`
+                    such that as a result we can have enrolleeInfo in result of classes
+
+            + Use $lookup with $mergeObjects
+
+            + Perform Multiple Joins and a Correlated Subquery with $lookup
+
+            + Perform an Uncorrelated Subquery with $lookup
+
+            + Perform a concise correlated subquery with $lookup

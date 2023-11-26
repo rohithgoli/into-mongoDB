@@ -6,3 +6,4 @@
 - [Basic CRUD Ops](https://www.mongodb.com/docs/manual/crud/)
   - [Query Operators - How & When](https://www.mongodb.com/docs/manual/reference/operator/query/
 )
+- [Aggregations & stages, Pipelines](https://www.mongodb.com/docs/manual/aggregation/)
