@@ -1,0 +1,37 @@
+https://www.mongodb.com/blog/post/building-with-patterns-a-summary
+
++ Schema Design Pattern --> I'm designing an application to do X, how do I model the data?
+    Designing our application's data schema is very dependent on our data access patterns
+
+    + Approximation Pattern
+
+        + In an application, instead of updating the population in database with every change,
+            we could build a counter & only update by 100. Writes are significantly reduced here
+        + When working with large amounts of data or large numbers of users, the impact on
+            performance of write operations can get to be large too
+        + By reducing writes & reducing resources for data that doesn't need to be perfect
+            --> lead to Huge improvements in performance
+
+        + ex: Population patterns, website views
+
+    + Attribute Pattern
+
+        + suited when we have big documents with many similar fields but there is a subset of fields
+            that share common characteristics and we want to sort or query on that subset of fields or
+        + the fields we need to sort on are only found in a small subset of documents or
+        + Both of above conditions are met within the documents
+
+        + For performance reasons, to optimize our search, we would likely need many indexes to account
+            for all of the subsets.Creating all of these indexes could reduce performance
+
+        +* In Attribute pattern, we move this subset of information into an array & reduce the indexing needs
+            We turn this information into an array of key-value pairs
+
+        +* By using Attribute pattern, we can add organization to our documents for common characteristics
+            and account for rare/unpredictable fields.
+                Moving to a key/value convention allows for the use of non-deterministic naming & easy addition of qualifiers
+                eg:
+                    "specs": [
+                        { k: "volume", v: "500", u: "ml" },
+                        { k: "volume", v: "12", u: "ounces"}
+                    ]
