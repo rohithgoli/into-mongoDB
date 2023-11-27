@@ -1,18 +1,18 @@
 https://www.mongodb.com/blog/post/building-with-patterns-a-summary
 
 + Schema Design Pattern --> I'm designing an application to do X, how do I model the data?
+                            How do I structure my schema in MongoDB for my application?
+
     Designing our application's data schema is very dependent on our data access patterns
+        Does application do more reads than writes?
+        What data needs to be together when read from the database?
+        What performance considerations are there?
+        How large are the documents?
+        How large they will get?
+        How data will grow and scale?
 
-    + Approximation Pattern
-
-        + In an application, instead of updating the population in database with every change,
-            we could build a counter & only update by 100. Writes are significantly reduced here
-        + When working with large amounts of data or large numbers of users, the impact on
-            performance of write operations can get to be large too
-        + By reducing writes & reducing resources for data that doesn't need to be perfect
-            --> lead to Huge improvements in performance
-
-        + ex: Population patterns, website views
+    Schema design --> performance, scalability, simplicity
+    Base for all patterns --> Polymorphic pattern
 
     + Attribute Pattern
 
@@ -35,3 +35,46 @@ https://www.mongodb.com/blog/post/building-with-patterns-a-summary
                         { k: "volume", v: "500", u: "ml" },
                         { k: "volume", v: "12", u: "ounces"}
                     ]
+
+    + Bucket Pattern
+
+        + particularly effective when working with IoT, Real-time analytics, Time-series data
+        + reduces overall number of documents in a collection
+          improves index performance
+          simplifies data access by leveraging pre-aggregation
+
+    + Extended Reference Pattern
+
+        + to be implemented when application is experiencing many repetitive JOIN operations
+            By identifying fields frequently being accessed, we can maintain them in the main document
+            But, Data duplication is a side effect of this schema design pattern
+
+    + Polymorphic pattern
+
+        + the base for all patterns
+        + utilized when we have documents that have more similarities than differences.
+
+    + Tree pattern
+
+        + Extended Reference -->-- an example where saving time on JOIN operation is benefit
+                                   ```Data that's accessed together should be stored together```
+                                    & some data duplication is tolerable
+
+        + If data to be joined is hierarchical
+                |--> a solution is, $graphLookup operator to navigate data as graphs
+                |--> If we need to do a lot of queries of this hierarchical data structure
+                        we want to apply the same rule of storing together data that is accessed together
+                        This is where we can use the Tree Pattern
+
+        + Use cases:
+            Reporting Hierarchy
+            Product catalogs
+
+                Product --> categories --> other categories
+                Solid State Drive --> Hard Drives --> Storage --> Computer Parts --> Electronics
+                    We can maintain ancestor_categories, parent_category
+
+                + Placing the ancestors in array provides ability to create a multi-key index on those values.
+                    + It allows for all descendants of a given category to be easily found.
+
+
