@@ -291,3 +291,33 @@ Aggregation Operations --> process multiple documents and return computed result
             + Perform an Uncorrelated Subquery with $lookup
 
             + Perform a concise correlated subquery with $lookup
+
+    $unwind --> deconstructs an array field from the input documents to output a document for each element
+
+        + examples:
+            + Unwind Array
+
+                { $unwind: { path: "$sizes" } }
+
+                preserveNullAndEmptyArrays
+                includeArrayIndex
+
+    $bucket --> To categorize input documents into groups(buckets) based on
+                specified expression & bucket boundaries and outputs a document per each
+                bucket.
+
+            + Bucket by field and Filter by Bucket Results
+            + Using $bucket with $facet to Bucket by Multiple fields
+
+
+    $bucketAuto
+
+    $addFields --> outputs documents that contain all existing fields from the input documents
+                    and newly added fields
+                   It is equivalent to a $project stage that explicitly specifies all existing
+                    fields in the input documents and adds the new fields
+
+    $facet --> process multiple aggregation pipelines within a single stage on the same set of input
+                documents
+                    Each sub-pipeline has its own field in the output document where its results are
+                stored as an array of documents
